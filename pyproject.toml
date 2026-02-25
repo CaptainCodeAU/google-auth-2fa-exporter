@@ -19,7 +19,12 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "pillow>=12.1.1",
+    "protobuf>=6.33.5",
     # Add core runtime dependencies here
+    "pyotp>=2.9.0",
+    "qrcode[pil]>=8.2",
+    "zxing-cpp>=3.0.0",
 ]
 
 [project.optional-dependencies]
@@ -86,3 +91,9 @@ no_implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 strict_equality = true
+
+[dependency-groups]
+dev = [
+    "grpcio-tools>=1.78.1",
+    "mypy-protobuf>=5.0.0",
+]
