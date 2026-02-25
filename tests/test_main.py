@@ -1,10 +1,10 @@
-"""Tests for the CLI and core functionality."""
+"""Tests for the CLI and package exports."""
 
 import sys
 
 import pytest
 
-from google_auth_2fa_exporter import __version__, run
+from google_auth_2fa_exporter import OtpAccount, __version__, decode_uri
 from google_auth_2fa_exporter.cli import main
 
 
@@ -13,11 +13,10 @@ def test_version() -> None:
     assert __version__ == "0.1.0"
 
 
-def test_run() -> None:
-    """Test the core run function."""
-    result = run()
-    assert isinstance(result, str)
-    assert len(result) > 0
+def test_exports() -> None:
+    """Test that expected symbols are exported from the package."""
+    assert OtpAccount is not None
+    assert decode_uri is not None
 
 
 def test_cli_version(capsys: pytest.CaptureFixture[str]) -> None:
