@@ -85,7 +85,40 @@ def decode_migration_payload(base64_data: str) -> list[OtpAccount]:
     return accounts
 
 
+def _parse_otpauth_uri(uri: str) -> OtpAccount:
+    """Parse a standard otpauth://totp/ or otpauth://hotp/ URI into an OtpAccount."""
+    parsed = urlparse(uri)
+    otp_type = parsed.hostname or "totp"
+    params = parse_qs(parsed.query)
+
+    # Label is the path component (without leading slash), possibly "Issuer:Account"
+    label = unquote(parsed.path.lstrip("/"))
+    if ":" in label:
+        label_issuer, name = label.split(":", 1)
+    else:
+        label_issuer, name = "", label
+
+    issuer = params.get("issuer", [label_issuer])[0]
+    secret = params.get("secret", [""])[0]
+    algorithm = params.get("algorithm", ["SHA1"])[0].upper()
+    digits = int(params.get("digits", ["6"])[0])
+    counter = int(params.get("counter", ["0"])[0])
+
+    return OtpAccount(
+        name=name,
+        issuer=issuer,
+        totp_secret=secret,
+        algorithm=algorithm,
+        digits=digits,
+        otp_type=otp_type,
+        counter=counter,
+    )
+
+
 def decode_uri(uri: str) -> list[OtpAccount]:
-    """Decode an otpauth-migration URI (or raw base64) into OtpAccount objects."""
+    """Decode an otpauth-migration URI, standard otpauth URI, or raw base64 into OtpAccount objects."""
+    uri = uri.strip()
+    if uri.startswith("otpauth://totp/") or uri.startswith("otpauth://hotp/"):
+        return [_parse_otpauth_uri(uri)]
     b64 = extract_base64_payload(uri)
     return decode_migration_payload(b64)

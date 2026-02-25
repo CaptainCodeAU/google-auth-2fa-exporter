@@ -117,3 +117,69 @@ class TestDecodeUri:
         b64 = _make_payload({"name": "test"})
         accounts = decode_uri(b64)
         assert len(accounts) == 1
+
+    def test_standard_otpauth_totp_uri(self) -> None:
+        uri = "otpauth://totp/Example:alice@google.com?secret=JBSWY3DPEHPK3PXP&issuer=Example"
+        accounts = decode_uri(uri)
+        assert len(accounts) == 1
+        acct = accounts[0]
+        assert acct.issuer == "Example"
+        assert acct.name == "alice@google.com"
+        assert acct.totp_secret == "JBSWY3DPEHPK3PXP"
+        assert acct.algorithm == "SHA1"
+        assert acct.digits == 6
+        assert acct.otp_type == "totp"
+        assert acct.counter == 0
+
+    def test_standard_otpauth_uri_with_encoded_label(self) -> None:
+        uri = "otpauth://totp/Label%20One?secret=JBSWY3DPEHPK3PXP&issuer=Epic%20Games"
+        accounts = decode_uri(uri)
+        assert len(accounts) == 1
+        acct = accounts[0]
+        assert acct.issuer == "Epic Games"
+        assert acct.name == "Label One"
+
+    def test_standard_otpauth_uri_with_algorithm_and_digits(self) -> None:
+        uri = "otpauth://totp/Issuer Alpha:alice@google.com?secret=ZBS3Y3DSEH9K31X1&issuer=Issuer Alpha&digits=8&period=30"
+        accounts = decode_uri(uri)
+        assert len(accounts) == 1
+        acct = accounts[0]
+        assert acct.digits == 8
+        assert acct.issuer == "Issuer Alpha"
+        assert acct.totp_secret == "ZBS3Y3DSEH9K31X1"
+
+    def test_standard_otpauth_uri_with_explicit_sha1(self) -> None:
+        uri = "otpauth://totp/acx.io:bank%40cedwqaz.com?secret=DEYCED7XZH3IA42&issuer=acxr.io&algorithm=SHA1&digits=6"
+        accounts = decode_uri(uri)
+        assert len(accounts) == 1
+        acct = accounts[0]
+        assert acct.algorithm == "SHA1"
+        assert acct.digits == 6
+        assert acct.name == "bank@cedwqaz.com"
+        assert acct.issuer == "acxr.io"
+
+    def test_standard_otpauth_hotp_uri(self) -> None:
+        uri = "otpauth://hotp/Service:user@test.com?secret=JBSWY3DPEHPK3PXP&issuer=Service&counter=5"
+        accounts = decode_uri(uri)
+        assert len(accounts) == 1
+        acct = accounts[0]
+        assert acct.otp_type == "hotp"
+        assert acct.counter == 5
+
+    def test_standard_otpauth_uri_issuer_from_label(self) -> None:
+        """When no issuer param, extract from label prefix."""
+        uri = "otpauth://totp/MyService:user@example.com?secret=JBSWY3DPEHPK3PXP"
+        accounts = decode_uri(uri)
+        assert len(accounts) == 1
+        acct = accounts[0]
+        assert acct.issuer == "MyService"
+        assert acct.name == "user@example.com"
+
+    def test_standard_otpauth_uri_no_issuer(self) -> None:
+        """No issuer in param or label prefix → empty issuer."""
+        uri = "otpauth://totp/user@example.com?secret=JBSWY3DPEHPK3PXP"
+        accounts = decode_uri(uri)
+        assert len(accounts) == 1
+        acct = accounts[0]
+        assert acct.issuer == ""
+        assert acct.name == "user@example.com"

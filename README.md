@@ -5,7 +5,7 @@ A terminal UI (TUI) application that decodes Google Authenticator export QR code
 ## Features
 
 - Scan QR code images (single file or entire directory) exported from Google Authenticator
-- Paste `otpauth-migration://` URIs directly
+- Paste `otpauth-migration://` URIs directly, or standard `otpauth://totp/` and `otpauth://hotp/` URIs
 - Built-in file browser for selecting images and export directories
 - View all decoded accounts in a table with live-updating TOTP codes and countdown timer
 - Click any table cell to copy its value to the system clipboard
@@ -47,7 +47,7 @@ uv run python main.py
 
 1. **Load accounts** using one of two methods:
    - **File/Dir row** — enter a path (or click Browse) to a QR code image or directory of images, then click **Load**
-   - **URI row** — paste an `otpauth-migration://offline?data=...` URI, then click **Load**
+   - **URI row** — paste an `otpauth-migration://offline?data=...` URI or a standard `otpauth://totp/...` URI, then click **Load**
 2. View your accounts and live TOTP codes in the table (codes update every second with a countdown timer)
 3. Click any cell to copy its value to the clipboard
 4. **Export** — enter an output directory (or click Browse), then click one of:
@@ -79,6 +79,9 @@ from google_auth_2fa_exporter import decode_uri, extract_accounts
 
 # From a migration URI
 accounts = decode_uri("otpauth-migration://offline?data=...")
+
+# From a standard otpauth URI
+accounts = decode_uri("otpauth://totp/GitHub:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=GitHub")
 
 # From a QR code image
 from pathlib import Path

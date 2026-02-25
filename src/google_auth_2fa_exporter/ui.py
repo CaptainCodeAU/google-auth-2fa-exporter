@@ -46,6 +46,8 @@ _COL_PAD = 2
 class _ImageDirectoryTree(DirectoryTree):
     """DirectoryTree that only shows image files and directories."""
 
+    ALLOW_SELECT = True
+
     def filter_paths(self, paths: Iterable[Path]) -> Iterable[Path]:
         return [
             p
@@ -150,6 +152,8 @@ class FilePickerScreen(ModalScreen[Path | None]):
 
 class _DirectoryOnlyTree(DirectoryTree):
     """DirectoryTree that only shows directories (no files)."""
+
+    ALLOW_SELECT = True
 
     def filter_paths(self, paths: Iterable[Path]) -> Iterable[Path]:
         return [p for p in paths if p.is_dir()]

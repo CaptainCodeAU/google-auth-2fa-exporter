@@ -40,10 +40,17 @@ class TestScanImage:
         assert len(results) == 1
         assert results[0] == uri
 
-    def test_non_migration_qr_ignored(self, tmp_path: Path) -> None:
+    def test_non_otpauth_qr_ignored(self, tmp_path: Path) -> None:
         img_path = _make_qr_image("https://example.com", tmp_path / "url.png")
         results = scan_image(img_path)
         assert results == []
+
+    def test_standard_otpauth_totp_qr(self, tmp_path: Path) -> None:
+        uri = "otpauth://totp/GitHub:alice@github.com?secret=JBSWY3DPEHPK3PXP&issuer=GitHub"
+        img_path = _make_qr_image(uri, tmp_path / "totp.png")
+        results = scan_image(img_path)
+        assert len(results) == 1
+        assert results[0] == uri
 
 
 class TestExtractAccounts:
@@ -72,6 +79,26 @@ class TestExtractAccounts:
         _make_qr_image(uri, tmp_path / "dup2.png")
         accounts = extract_accounts(tmp_path)
         assert len(accounts) == 1
+
+    def test_standard_otpauth_qr_file(self, tmp_path: Path) -> None:
+        uri = "otpauth://totp/GitHub:alice@github.com?secret=JBSWY3DPEHPK3PXP&issuer=GitHub"
+        _make_qr_image(uri, tmp_path / "totp.png")
+        accounts = extract_accounts(tmp_path / "totp.png")
+        assert len(accounts) == 1
+        assert accounts[0].issuer == "GitHub"
+        assert accounts[0].name == "alice@github.com"
+        assert accounts[0].totp_secret == "JBSWY3DPEHPK3PXP"
+
+    def test_directory_mixed_migration_and_standard(self, tmp_path: Path) -> None:
+        migration_uri = _make_migration_uri(name="a@test.com", issuer="Svc1")
+        standard_uri = "otpauth://totp/Svc2:b@test.com?secret=JBSWY3DPEHPK3PXP&issuer=Svc2"
+        _make_qr_image(migration_uri, tmp_path / "img1.png")
+        _make_qr_image(standard_uri, tmp_path / "img2.png")
+        accounts = extract_accounts(tmp_path)
+        assert len(accounts) == 2
+        names = {a.name for a in accounts}
+        assert "a@test.com" in names
+        assert "b@test.com" in names
 
     def test_nonexistent_path(self, tmp_path: Path) -> None:
         import pytest

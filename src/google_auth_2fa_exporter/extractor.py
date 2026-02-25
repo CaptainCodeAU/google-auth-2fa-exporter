@@ -16,7 +16,7 @@ def scan_image(path: Path) -> list[str]:
     """Read all barcodes from an image file and return URI strings."""
     img = Image.open(path)
     results = zxingcpp.read_barcodes(img)
-    return [r.text for r in results if r.text.startswith("otpauth-migration://")]
+    return [r.text for r in results if r.text.startswith(("otpauth-migration://", "otpauth://"))]
 
 
 def scan_directory(directory: Path) -> list[str]:
