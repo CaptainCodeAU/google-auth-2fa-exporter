@@ -113,8 +113,7 @@
       "WebFetch(domain:stackoverflow.com)",
       "WebFetch(domain:swift.org)",
       "WebFetch(domain:www.npmjs.com)",
-      "WebSearch",
-      "mcp__ide__getDiagnostics"
+      "WebSearch"
     ],
     "deny": [
       "Read(**/.env)",
